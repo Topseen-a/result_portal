@@ -2,8 +2,6 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.db import models
 
 
-# Create your models here.
-
 class User(AbstractBaseUser):
     class Role(models.TextChoices):
         ADMIN = 'admin', 'Admin'
@@ -23,5 +21,10 @@ class User(AbstractBaseUser):
 
 
 class Department(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, blank=False, null=False)
+    code = models.CharField(max_length=255, unique=True, blank=False, null=False)
+    description = models.CharField(max_length=255, blank=False, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} {self.code}"
