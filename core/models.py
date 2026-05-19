@@ -4,9 +4,9 @@ from django.db import models
 
 class User(AbstractBaseUser):
     class Role(models.TextChoices):
-        ADMIN = 'admin', 'Admin'
-        STUDENT = 'student', 'Student'
-        STAFF = 'staff', 'Staff'
+        ADMIN = "admin", "Admin"
+        STUDENT = "student", "Student"
+        STAFF = "staff", "Staff"
 
     first_name = models.CharField(max_length=255, blank=False, null=False)
     last_name = models.CharField(max_length=255, blank=False, null=False)
