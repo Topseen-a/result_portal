@@ -31,8 +31,8 @@ class User(AbstractBaseUser):
 
 
 class Department(models.Model):
-    name = models.CharField(max_length=200, unique=True)
-    code = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=200, unique=True, blank=False, null=False)
+    code = models.CharField(max_length=20, unique=True, blank=False, null=False)
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
