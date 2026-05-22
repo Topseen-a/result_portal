@@ -27,7 +27,7 @@ class AcademicSession(models.Model):
 
 class Course(models.Model):
     department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name="courses")
-    code = models.CharField(max_length=20, unique=True)
+    course_code = models.CharField(max_length=20, unique=True, blank=False, null=False, primary_key=True)
     title = models.CharField(max_length=200)
     credit_units = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(6)])
     level = models.CharField(max_length=3, choices=LEVEL_CHOICES, default="100")
@@ -39,10 +39,10 @@ class Course(models.Model):
 
     class Meta:
         db_table = "academic_courses"
-        ordering = ["code"]
+        ordering = ["course_code"]
 
     def __str__(self):
-        return f"{self.code}: {self.title} ({self.credit_units} units)"
+        return f"{self.course_code}: {self.title} ({self.credit_units} units)"
 
 
 class CourseRegistration(models.Model):
@@ -54,16 +54,16 @@ class CourseRegistration(models.Model):
     class Meta:
         db_table = "academics_course_registrations"
         unique_together = [("student", "course", "session")]
-        ordering = ["-session__year", "course__code"]
+        ordering = ["-session__year", "course__course_code"]
 
     def __str__(self):
-        return f"{self.student} - {self.course.code} ({self.session})"
+        return f"{self.student} - {self.course.course_code} ({self.session})"
 
     def clean(self):
         if self.course_id and self.session_id:
             if self.course.semester != self.session.semester:
                 raise ValidationError(
-                    f"Course '{self.course.code}' belongs to the "
+                    f"Course '{self.course.course_code}' belongs to the "
                     f"{self.course.get_semester_display()} but this session "
                     f"is the {self.session.get_semester_display()}."
                 )

@@ -32,8 +32,8 @@ class User(AbstractBaseUser):
 
 class Department(models.Model):
     name = models.CharField(max_length=200, unique=True, blank=False, null=False)
-    code = models.CharField(max_length=20, unique=True, blank=False, null=False)
-    description = models.TextField(blank=True)
+    department_code = models.CharField(max_length=20, unique=True, blank=False, null=False, primary_key=True)
+    description = models.TextField(blank=True, null=False)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -43,4 +43,4 @@ class Department(models.Model):
         ordering = ["name"]
 
     def __str__(self):
-        return f"{self.code} - {self.name}"
+        return f"{self.department_code} - {self.name}"

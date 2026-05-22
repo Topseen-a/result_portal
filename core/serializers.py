@@ -1,7 +1,8 @@
 from rest_framework import serializers
+from core.models import Department
 
 
-class DepartmentSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=255, required=True)
-    code = serializers.CharField(max_length=255, required=True)
-    description = serializers.CharField(max_length=255, required=True)
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = ['name', 'department_code', 'description']
