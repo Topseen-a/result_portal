@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view
-from rest_framework.exceptions import ValidationError
+from rest_framework.serializers import ValidationError
 from rest_framework.response import Response
 from loguru import logger
 
@@ -59,7 +59,7 @@ def update_department(request, department_code):
 
 @api_view(['DELETE'])
 def delete_department(request, department_code):
-    department = get_object_or_404(Department, code=department_code)
+    department = get_object_or_404(Department, department_code=department_code)
     department.is_active = False
     department.save()
     logger.info(f"department {department_code} deleted")
