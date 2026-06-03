@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
-from .models import Course
-from .serializers import CourseSerializer
+from .models import Course, AcademicSession
+from .serializers import CourseSerializer, AcademicSessionSerializer
 
 
 class CourseViewSet(ModelViewSet):
@@ -9,3 +9,8 @@ class CourseViewSet(ModelViewSet):
 
     def get_serializer_context(self):
         return {"department_id": self.kwargs.get("nested_1_pk")}
+
+
+class AcademicSessionViewSet(ModelViewSet):
+    queryset = AcademicSession.objects.all()
+    serializer_class = AcademicSessionSerializer
