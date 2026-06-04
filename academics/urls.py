@@ -7,5 +7,5 @@ router = routers.DefaultRouter()
 router.register('', AcademicSessionViewSet, basename='academic-sessions')
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('academic-session/', include(router.urls)),
 ]

@@ -1,32 +1,70 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.db import transaction
+from django.db import transaction, IntegrityError
 
-from .serializers import StudentEnrollmentSerializer
-from .models import Student
-from core.models import User
+from .serializers import StudentEnrollmentSerializer, StaffEnrollmentSerializer
+from .models import Student, Staff
+from core.models import User, Department
 
 
 class StudentEnrollment(APIView):
     def post(self, request, *args, **kwargs):
-        serializer = StudentEnrollmentSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        with transaction.atomic():
-            user = User.objects.create(
-                email=serializer.validated_data["email"],
-                username=serializer.validated_data["username"],
-                first_name=serializer.validated_data["first_name"],
-                last_name=serializer.validated_data["last_name"],
-                password=serializer.validated_data["password"]
-            )
+        try:
+            serializer = StudentEnrollmentSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
 
-            student = Student.objects.create(
-                user=user,
-                department=serializer.validated_data["department"],
-                entry_year=serializer.validated_data["entry_year"],
-            )
+            department_code = serializer.validated_data['department']
+            department = Department.objects.get(department_code=department_code)
 
-            user.save()
-            student.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            with transaction.atomic():
+                user = User()
+                user.email = serializer.validated_data["email"]
+                user.username = serializer.validated_data["username"]
+                user.first_name = serializer.validated_data["first_name"]
+                user.last_name = serializer.validated_data["last_name"]
+                user.set_password(serializer.validated_data["password"])
+                user.save()
+
+                student = Student.objects.create(
+                    user=user,
+                    department=department,
+                    entry_year=serializer.validated_data["entry_year"],
+                )
+                student.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Department.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        except IntegrityError as e:
+            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class StaffEnrollment(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            serializer = StaffEnrollmentSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            department_code = serializer.validated_data['department']
+            department = Department.objects.get(department_code=department_code)
+
+            with transaction.atomic():
+                user = User()
+                user.email = serializer.validated_data["email"]
+                user.username = serializer.validated_data["username"]
+                user.first_name = serializer.validated_data["first_name"]
+                user.last_name = serializer.validated_data["last_name"]
+                user.set_password(serializer.validated_data["password"])
+                user.role = "staff"
+                user.save()
+
+                staff = Staff.objects.create(
+                    user=user,
+                    department=department
+                )
+                staff.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Department.DoesNotExist as e:
+            return Response({"message": str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except IntegrityError as e:
+            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)

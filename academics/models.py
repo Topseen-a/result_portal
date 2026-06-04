@@ -46,9 +46,9 @@ class Course(models.Model):
 
 
 class CourseRegistration(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="registrations")
-    course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name="registrations")
-    session = models.ForeignKey(AcademicSession, on_delete=models.PROTECT, related_name="registrations")
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="student_registrations")
+    course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name="course_registrations")
+    session = models.ForeignKey(AcademicSession, on_delete=models.PROTECT, related_name="sessions")
     register_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
