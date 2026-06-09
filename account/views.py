@@ -1,14 +1,19 @@
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db import transaction, IntegrityError
+from loguru import logger
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import StudentEnrollmentSerializer, StaffEnrollmentSerializer
+from .serializers import StudentEnrollmentSerializer, StaffEnrollmentSerializer, CustomTokenObtainSerializer
 from .models import Student, Staff
 from core.models import User, Department
 
 
 class StudentEnrollment(APIView):
+    permission_classes = [AllowAny]
     def post(self, request, *args, **kwargs):
         try:
             serializer = StudentEnrollmentSerializer(data=request.data)
@@ -68,3 +73,26 @@ class StaffEnrollment(APIView):
             return Response({"message": str(e)}, status=status.HTTP_404_NOT_FOUND)
         except IntegrityError as e:
             return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LoginView(TokenObtainPairView):
+    permission_classes = [AllowAny]
+    serializer_class = CustomTokenObtainSerializer
+
+    def post(self, request, *args, **kwargs):
+        user_email = request.data.get("email")
+        logger.info(f"User {user_email} is attempting to login")
+
+        serializer = self.serializer_class(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            logger.info(f"Invalid token: {e}")
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.info(f"An error occurred while logging in for: {e}")
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        logger.info(f"User {user_email} logged in successfully")
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)

@@ -17,3 +17,10 @@ class CourseViewSet(ModelViewSet):
 class AcademicSessionViewSet(ModelViewSet):
     queryset = AcademicSession.objects.all()
     serializer_class = AcademicSessionSerializer
+#
+#
+# class CourseRegistrationViewSet(ModelViewSet):
+#     serializer = CourseRegistrationSerializer
+#
+#       def get_queryset(self):
+#             ...

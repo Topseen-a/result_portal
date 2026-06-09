@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Course, AcademicSession
+from .models import Course, AcademicSession, CourseRegistration
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -16,3 +16,9 @@ class AcademicSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = AcademicSession
         fields = ['name', 'year', 'semester', 'is_current', 'start_date', 'end_date']
+#
+#
+# class CourseRegistrationSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = CourseRegistration
+#         fields = []
