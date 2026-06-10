@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'academics',
     'results',
     'core',
+    'drf_yasg'
 ]
 
 MIDDLEWARE = [
