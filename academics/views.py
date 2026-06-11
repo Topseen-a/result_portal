@@ -2,12 +2,11 @@ from django.db import IntegrityError
 from loguru import logger
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from .models import Course, AcademicSession, CourseRegistration
-from .serializers import CourseSerializer, AcademicSessionSerializer, CourseRegistrationSerializer, \
-    ReadAcademicSessionSerializer
+from .serializers import CourseSerializer, AcademicSessionSerializer, CourseRegistrationSerializer, ReadAcademicSessionSerializer
 
 
 class CourseViewSet(ModelViewSet):

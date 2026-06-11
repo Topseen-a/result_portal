@@ -3,7 +3,7 @@ from academics.models import CourseRegistration
 from account.models import Staff
 
 
-class Results(models.Model):
+class Result(models.Model):
     registration = models.OneToOneField(CourseRegistration, on_delete=models.CASCADE, related_name="result")
     score = models.DecimalField(max_digits=4, decimal_places=2, blank=False, null=False)
     grade = models.CharField(max_length=2, blank=False, null=False)
@@ -12,6 +12,10 @@ class Results(models.Model):
     uploaded_by = models.ForeignKey(Staff, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "results_result"
+
 
     def __str__(self):
         return (
