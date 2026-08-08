@@ -6,3 +6,12 @@ __pycache__
 *.pyc
 *.sqlite3
 .env
+
+# OS
+.DS_Store
+
+# Docker / deploy artifacts
+Dockerfile
+.dockerignore
+docker-compose*.yml
+deploy-steps2.txt
