@@ -22,7 +22,7 @@ class AcademicSessionSerializer(serializers.ModelSerializer):
 class ReadAcademicSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = AcademicSession
-        fields = ['name', 'year', 'start_date']
+        fields = ['id', 'name', 'year', 'semester', 'is_current', 'start_date', 'end_date']
 
 
 class StudentSerializer(serializers.ModelSerializer):

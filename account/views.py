@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db import transaction, IntegrityError
@@ -8,7 +8,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from core.permissions import IsAdmin
-from .serializers import StudentEnrollmentSerializer, StaffEnrollmentSerializer, CustomTokenObtainSerializer
+from .serializers import StudentEnrollmentSerializer, StaffEnrollmentSerializer, CustomTokenObtainSerializer, MeSerializer
 from .models import Student, Staff
 from core.models import User, Department
 
@@ -99,3 +99,10 @@ class LoginView(TokenObtainPairView):
 
         logger.info(f"User {user_email} logged in successfully")
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response(MeSerializer(request.user).data)
