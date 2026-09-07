@@ -19,4 +19,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["uv", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["sh", "-c", "uv run python manage.py migrate && uv run python manage.py collectstatic --noinput && uv run gunicorn result_portal.wsgi:application --bind 0.0.0.0:$PORT"]
