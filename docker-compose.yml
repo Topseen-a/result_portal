@@ -4,38 +4,36 @@ services:
 
   postgres:
     image: postgres:16
-
     container_name: postgres_db
-
     restart: always
-
     environment:
-      POSTGRES_DB: result_portal
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: tope
-
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   web:
-
     build: .
-
     container_name: result_portal
-
     command: uv run python manage.py runserver 0.0.0.0:8000
-
     volumes:
       - .:/app
-
+      - /app/.venv
     ports:
       - "8000:8000"
-
     env_file:
       - .env
-
+    environment:
+      DB_HOST: postgres
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:

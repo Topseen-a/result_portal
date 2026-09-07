@@ -5,7 +5,7 @@ from account.models import Staff
 
 class Result(models.Model):
     registration = models.OneToOneField(CourseRegistration, on_delete=models.CASCADE, related_name="result")
-    score = models.DecimalField(max_digits=4, decimal_places=2, blank=False, null=False)
+    score = models.DecimalField(max_digits=5, decimal_places=2, blank=False, null=False)
     grade = models.CharField(max_length=2, blank=False, null=False)
     grade_point = models.DecimalField(max_digits=3, decimal_places=1, blank=False, null=False)
     is_published = models.BooleanField(default=False)

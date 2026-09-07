@@ -7,6 +7,7 @@ from loguru import logger
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from core.permissions import IsAdmin
 from .serializers import StudentEnrollmentSerializer, StaffEnrollmentSerializer, CustomTokenObtainSerializer
 from .models import Student, Staff
 from core.models import User, Department
@@ -45,6 +46,8 @@ class StudentEnrollment(APIView):
 
 
 class StaffEnrollment(APIView):
+    permission_classes = [IsAdmin]
+
     def post(self, request, *args, **kwargs):
         try:
             serializer = StaffEnrollmentSerializer(data=request.data)
@@ -88,8 +91,8 @@ class LoginView(TokenObtainPairView):
         try:
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
-            logger.info(f"Invalid token: {e}")
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            logger.info(f"Invalid credentials: {e}")
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         except Exception as e:
             logger.info(f"An error occurred while logging in for: {e}")
             return Response(status=status.HTTP_400_BAD_REQUEST)

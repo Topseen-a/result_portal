@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -8,7 +9,7 @@ class StudentEnrollmentSerializer(serializers.Serializer):
     entry_year = serializers.IntegerField()
     email = serializers.EmailField(required=True)
     username = serializers.CharField(required=True)
-    password = serializers.CharField(required=True, write_only=True)
+    password = serializers.CharField(required=True, write_only=True, validators=[validate_password])
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
 
@@ -17,7 +18,7 @@ class StaffEnrollmentSerializer(serializers.Serializer):
     department = serializers.CharField(max_length=10, required=True)
     email = serializers.EmailField(required=True)
     username = serializers.CharField(required=True)
-    password = serializers.CharField(required=True, write_only=True)
+    password = serializers.CharField(required=True, write_only=True, validators=[validate_password])
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
 

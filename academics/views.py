@@ -5,6 +5,7 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIV
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from core.permissions import IsAdmin, IsAdminOrStaff, IsAdminOrStaffOrReadOnly
 from .models import Course, AcademicSession, CourseRegistration
 from .serializers import CourseSerializer, AcademicSessionSerializer, CourseRegistrationSerializer, ReadAcademicSessionSerializer
 
@@ -12,6 +13,7 @@ from .serializers import CourseSerializer, AcademicSessionSerializer, CourseRegi
 class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    permission_classes = [IsAdminOrStaffOrReadOnly]
 
     def get_queryset(self):
         return Course.objects.filter(department=self.kwargs["nested_1_pk"])
@@ -28,15 +30,25 @@ class AcademicSessionView(ListCreateAPIView):
             return AcademicSessionSerializer
         return ReadAcademicSessionSerializer
 
+    def get_permissions(self):
+        if self.request.method == "POST":
+            return [IsAdmin()]
+        return [IsAuthenticated()]
+
 
 class GetUpdateDeleteAcademicSessionView(RetrieveUpdateDestroyAPIView):
     queryset = AcademicSession.objects.all()
     serializer_class = AcademicSessionSerializer
 
+    def get_permissions(self):
+        if self.request.method in ["PUT", "PATCH", "DELETE"]:
+            return [IsAdmin()]
+        return [IsAuthenticated()]
+
 
 class CourseRegistrationViewSet(ModelViewSet):
     serializer_class = CourseRegistrationSerializer
-    permissions = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
@@ -45,7 +57,7 @@ class CourseRegistrationViewSet(ModelViewSet):
             "student__user", "course__department", "session"
         ).all()
 
-        if user.is_active:
+        if user.is_student:
             qs = qs.filter(student=user.student_profile)
 
         return qs
@@ -54,7 +66,7 @@ class CourseRegistrationViewSet(ModelViewSet):
         context = super().get_serializer_context()
         user = self.request.user
 
-        if user.is_authenticated and user.is_active:
+        if user.is_authenticated and user.is_student:
             try:
                 context["student"] = user.student_profile
             except Exception as e:
@@ -63,12 +75,12 @@ class CourseRegistrationViewSet(ModelViewSet):
         return context
 
     def create(self, request, *args, **kwargs):
-        if not request.user.is_active:
+        if not request.user.is_student:
             logger.warning(
                 f"Non-student user_id={request.user.id} attempted course registration"
             )
             return Response(
-                {"error": "Only active students can register courses"},
+                {"error": "Only students can register courses"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -135,7 +147,7 @@ class CourseRegistrationViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         registration = self.get_object()
 
-        if request.user.is_active and registration.student != request.user.student_profile:
+        if request.user.is_student and registration.student != request.user.student_profile:
             logger.warning(
                 f"Student {request.user.id} attempted to drop "
                 f"another student's registration id={registration.id}"

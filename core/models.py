@@ -1,7 +1,7 @@
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from core.constants import ROLE_CHOICES, ROLE_ADMIN
+from core.constants import ROLE_CHOICES, ROLE_ADMIN, ROLE_STAFF, ROLE_STUDENT
 
 
 class UserManager(BaseUserManager):
@@ -51,7 +51,15 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_admin(self):
-        return self.role == self.Role.ADMIN
+        return self.role == ROLE_ADMIN
+
+    @property
+    def is_staff_member(self):
+        return self.role == ROLE_STAFF
+
+    @property
+    def is_student(self):
+        return self.role == ROLE_STUDENT
 
 
 class Department(models.Model):

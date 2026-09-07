@@ -28,7 +28,7 @@ class ResultSerializer(serializers.ModelSerializer):
         validated_data["uploaded_by"] = (
             self.context["request"]
             .user
-            .staff
+            .staff_profile
         )
 
         return Result.objects.create(**validated_data)

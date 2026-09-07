@@ -1,7 +1,7 @@
 from django.core.mail import send_mail
 from loguru import logger
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -15,12 +15,13 @@ class DepartmentViewSet(ModelViewSet):
     serializer_class = DepartmentSerializer
 
     def get_permissions(self):
-        if self.request.method in ["POST", "PUT", "PATCH"]:
+        if self.request.method in ["POST", "PUT", "PATCH", "DELETE"]:
             return [IsAdminUser()]
         return [AllowAny()]
 
 
 @api_view(['POST'])
+@permission_classes([IsAdminUser])
 def send_message(request):
     message = request.data.get('message')
     email = request.data.get('email')

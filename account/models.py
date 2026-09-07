@@ -22,7 +22,7 @@ class Student(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "student account"
+        db_table = "account_students"
         ordering = ["matric_number"]
 
     def __str__(self):
@@ -37,8 +37,8 @@ class Student(models.Model):
         return self.user.email
 
     @property
-    def is_active(self):
-        return self.status
+    def is_currently_active(self):
+        return self.status == "active"
 
 
 class Staff(models.Model):
@@ -50,8 +50,8 @@ class Staff(models.Model):
         ("hod", "Head of Department"),
     ]
 
-    user = models.OneToOneField(User, on_delete=models.PROTECT)
-    department = models.ForeignKey(Department, on_delete=models.PROTECT)
+    user = models.OneToOneField(User, on_delete=models.PROTECT, related_name="staff_profile")
+    department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name="department_staff")
     designation = models.CharField(max_length=55, choices=DESIGNATION_CHOICES, blank=False, null=False, default="lecturer_i")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

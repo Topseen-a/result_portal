@@ -4,8 +4,8 @@ from academics.models import Course, AcademicSession, CourseRegistration
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('department', 'course_code', 'credit_units', 'semester', 'description')
-    search_fields = ('department',)
+    list_display = ('department', 'course_code', 'title', 'credit_units', 'semester')
+    search_fields = ('course_code', 'title', 'department__name')
 
 
 @admin.register(AcademicSession)
@@ -17,4 +17,4 @@ class AcademicSessionAdmin(admin.ModelAdmin):
 @admin.register(CourseRegistration)
 class CourseRegistrationAdmin(admin.ModelAdmin):
     list_display = ('student', 'course', 'session', 'register_at')
-    search_fields = ('course',)
+    search_fields = ('student__matric_number', 'course__course_code')
