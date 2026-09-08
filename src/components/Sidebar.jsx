@@ -17,20 +17,22 @@ const navItemClass = ({ isActive }) =>
       : "text-slate-300/80 hover:bg-white/5 hover:text-white"
   }`;
 
-export default function Sidebar() {
+// Shared nav content rendered by both the desktop sidebar and the mobile drawer.
+// `onNavigate` closes the mobile drawer when a link is tapped.
+export function SidebarNav({ onNavigate }) {
   const { profile, logout } = useAuth();
   const role = profile?.role;
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col bg-navy-950 px-4 py-6 text-white md:flex">
+    <>
       <div className="flex items-center gap-2 px-2 pb-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-sm font-bold">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-sm font-bold">
           R
         </div>
         <span className="text-lg font-semibold tracking-tight">Result Portal</span>
       </div>
 
-      <nav className="flex-1 space-y-6 overflow-y-auto">
+      <nav className="flex-1 space-y-6 overflow-y-auto" onClick={onNavigate}>
         <div>
           <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             Academic
@@ -83,6 +85,14 @@ export default function Sidebar() {
         <LogoutIcon className="shrink-0" />
         Logout
       </button>
+    </>
+  );
+}
+
+export default function Sidebar() {
+  return (
+    <aside className="hidden w-64 shrink-0 flex-col bg-navy-950 px-4 py-6 text-white md:flex">
+      <SidebarNav />
     </aside>
   );
 }

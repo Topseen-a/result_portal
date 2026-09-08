@@ -3,10 +3,26 @@ import { useAuth } from "../context/AuthContext";
 import { listMyRegistrations, listResults, listSessions, getCgpa } from "../api/endpoints";
 import { useFetch, cardPalette } from "../utils/useFetch";
 import { Card, SectionHeader, Badge, EmptyState, Spinner } from "../components/ui";
+import { DataTable } from "../components/DataTable";
 import MiniCalendar from "../components/MiniCalendar";
 import { ChevronRightIcon } from "../components/icons";
 
 const LEVEL_LABEL = { "100": "100 Level", "200": "200 Level", "300": "300 Level", "400": "400 Level", "500": "500 Level" };
+
+const resultColumns = [
+  { key: "course", header: "Course", cellClassName: "font-medium text-slate-700" },
+  { key: "score", header: "Score" },
+  { key: "grade", header: "Grade" },
+  {
+    key: "status",
+    header: "Status",
+    cell: (r) => (
+      <Badge tone={r.is_published ? "published" : "pending"}>
+        {r.is_published ? "Published" : "Pending"}
+      </Badge>
+    ),
+  },
+];
 
 export default function StudentDashboard() {
   const { profile } = useAuth();
@@ -122,35 +138,16 @@ export default function StudentDashboard() {
               <div className="flex justify-center py-10">
                 <Spinner />
               </div>
-            ) : results && results.length > 0 ? (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
-                    <th className="px-5 py-3 font-medium">Course</th>
-                    <th className="px-5 py-3 font-medium">Score</th>
-                    <th className="px-5 py-3 font-medium">Grade</th>
-                    <th className="px-5 py-3 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {results.slice(0, 6).map((r) => (
-                    <tr key={r.id} className="border-b border-slate-50 last:border-0">
-                      <td className="px-5 py-3 font-medium text-slate-700">{r.course}</td>
-                      <td className="px-5 py-3 text-slate-600">{r.score}</td>
-                      <td className="px-5 py-3 text-slate-600">{r.grade}</td>
-                      <td className="px-5 py-3">
-                        <Badge tone={r.is_published ? "published" : "pending"}>
-                          {r.is_published ? "Published" : "Pending"}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             ) : (
-              <div className="px-5 py-10 text-center text-sm text-slate-400">
-                No published results yet.
-              </div>
+              <DataTable
+                columns={resultColumns}
+                rows={results?.slice(0, 6)}
+                empty={
+                  <div className="px-5 py-10 text-center text-sm text-slate-400">
+                    No published results yet.
+                  </div>
+                }
+              />
             )}
           </Card>
         </div>

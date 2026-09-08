@@ -107,6 +107,18 @@ export const ClockIcon = (props) => (
   </svg>
 );
 
+export const MenuIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M3.5 6.5h17M3.5 12h17M3.5 17.5h17" />
+  </svg>
+);
+
+export const CloseIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M6 6l12 12M18 6L6 18" />
+  </svg>
+);
+
 export const BookIcon = (props) => (
   <svg {...base} {...props}>
     <path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5v-17z" />

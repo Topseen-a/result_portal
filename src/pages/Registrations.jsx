@@ -2,6 +2,7 @@ import { useState } from "react";
 import { listMyRegistrations, listSessions, dropRegistration } from "../api/endpoints";
 import { useFetch } from "../utils/useFetch";
 import { Card, SectionHeader, Button, Spinner, EmptyState, Alert } from "../components/ui";
+import { DataTable } from "../components/DataTable";
 import { TrashIcon } from "../components/icons";
 import { Link } from "react-router-dom";
 
@@ -26,6 +27,43 @@ export default function Registrations() {
     }
   }
 
+  const columns = [
+    {
+      key: "course",
+      header: "Course",
+      cellClassName: "font-medium text-slate-700",
+      cell: (r) => `${r.course} — ${r.course_title}`,
+    },
+    {
+      key: "session",
+      header: "Session",
+      cell: (r) => sessionById.get(r.session)?.name || r.session,
+    },
+    { key: "session_semester", header: "Semester", cellClassName: "capitalize text-slate-600" },
+    {
+      key: "register_at",
+      header: "Registered on",
+      cell: (r) => new Date(r.register_at).toLocaleDateString(),
+    },
+    {
+      key: "actions",
+      header: "",
+      align: "right",
+      hideLabel: true,
+      cell: (r) => (
+        <Button
+          variant="danger"
+          className="w-full !px-3 !py-1.5 text-xs sm:w-auto"
+          disabled={droppingId === r.id}
+          onClick={() => handleDrop(r.id)}
+        >
+          <TrashIcon width={14} height={14} />
+          {droppingId === r.id ? "Dropping..." : "Drop"}
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <SectionHeader
@@ -44,54 +82,20 @@ export default function Registrations() {
           <div className="flex justify-center py-10">
             <Spinner />
           </div>
-        ) : registrations && registrations.length > 0 ? (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
-                <th className="px-5 py-3 font-medium">Course</th>
-                <th className="px-5 py-3 font-medium">Session</th>
-                <th className="px-5 py-3 font-medium">Semester</th>
-                <th className="px-5 py-3 font-medium">Registered on</th>
-                <th className="px-5 py-3 font-medium" />
-              </tr>
-            </thead>
-            <tbody>
-              {registrations.map((r) => {
-                const session = sessionById.get(r.session);
-                return (
-                  <tr key={r.id} className="border-b border-slate-50 last:border-0">
-                    <td className="px-5 py-3 font-medium text-slate-700">
-                      {r.course} — {r.course_title}
-                    </td>
-                    <td className="px-5 py-3 text-slate-600">{session?.name || r.session}</td>
-                    <td className="px-5 py-3 capitalize text-slate-600">{r.session_semester}</td>
-                    <td className="px-5 py-3 text-slate-500">
-                      {new Date(r.register_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-5 py-3 text-right">
-                      <Button
-                        variant="danger"
-                        className="!px-3 !py-1.5 text-xs"
-                        disabled={droppingId === r.id}
-                        onClick={() => handleDrop(r.id)}
-                      >
-                        <TrashIcon width={14} height={14} />
-                        {droppingId === r.id ? "Dropping..." : "Drop"}
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
         ) : (
-          <EmptyState
-            title="No course registrations yet"
-            description="Browse the course catalog and register for the current session."
-            action={
-              <Link to="/courses" className="text-sm font-semibold text-brand-600 hover:text-brand-500">
-                Browse courses →
-              </Link>
+          <DataTable
+            columns={columns}
+            rows={registrations}
+            empty={
+              <EmptyState
+                title="No course registrations yet"
+                description="Browse the course catalog and register for the current session."
+                action={
+                  <Link to="/courses" className="text-sm font-semibold text-brand-600 hover:text-brand-500">
+                    Browse courses →
+                  </Link>
+                }
+              />
             }
           />
         )}

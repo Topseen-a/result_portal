@@ -95,14 +95,47 @@ export async function apiRequest(path, { method = "GET", body, auth = true, retr
   }
 
   if (!res.ok) {
-    const message =
-      (data && (data.error || data.message || data.detail)) ||
-      (data && data.errors && JSON.stringify(data.errors)) ||
-      `Request failed (${res.status})`;
-    throw new ApiError(message, res.status, data);
+    throw new ApiError(extractErrorMessage(data), res.status, data);
   }
 
   return data;
+}
+
+// Backend errors show up in a few shapes: DRF's { detail: "..." }, our own
+// { error / message: "..." }, per-field validation errors like
+// { email: ["already exists"] }, or (for endpoints that deliberately don't
+// reveal specifics, like login) no body at all. Flatten all of that into one
+// readable sentence instead of ever showing raw JSON or a bare status code.
+function extractErrorMessage(data) {
+  if (!data) return "Something went wrong. Please try again.";
+  if (typeof data === "string") return data;
+  if (data.detail) return data.detail;
+  if (data.error) return data.error;
+  if (data.message) return data.message;
+
+  const flattened = flattenFieldErrors(data.errors || data);
+  return flattened || "Something went wrong. Please try again.";
+}
+
+function flattenFieldErrors(value) {
+  if (Array.isArray(value)) return value.filter(Boolean).join(" ");
+  if (value && typeof value === "object") {
+    return Object.entries(value)
+      .map(([field, msg]) => {
+        const text = flattenFieldErrors(msg);
+        if (!text) return null;
+        return field === "non_field_errors" ? text : `${humanizeField(field)}: ${text}`;
+      })
+      .filter(Boolean)
+      .join(" ");
+  }
+  return typeof value === "string" ? value : "";
+}
+
+function humanizeField(field) {
+  return field
+    .replace(/_/g, " ")
+    .replace(/^./, (c) => c.toUpperCase());
 }
 
 export { ApiError, BASE_URL };

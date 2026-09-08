@@ -21,7 +21,15 @@ export default function Login() {
       const redirectTo = location.state?.from || "/dashboard";
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError(err.message || "Invalid email or password.");
+      // The login endpoint deliberately returns no detail on bad credentials
+      // (401/400 with an empty body), so map those by status instead of
+      // trusting err.message, which would otherwise show a generic
+      // "Something went wrong" for what is simply a wrong password.
+      if (err.status === 400 || err.status === 401) {
+        setError("Invalid email or password.");
+      } else {
+        setError(err.message || "Invalid email or password.");
+      }
     } finally {
       setLoading(false);
     }

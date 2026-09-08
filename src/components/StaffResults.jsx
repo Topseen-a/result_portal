@@ -2,6 +2,7 @@ import { useState } from "react";
 import { listMyRegistrations, listResults, uploadResult, publishResult } from "../api/endpoints";
 import { useFetch } from "../utils/useFetch";
 import { Card, SectionHeader, Badge, Spinner, EmptyState, Button, Input, Alert } from "./ui";
+import { DataTable } from "./DataTable";
 
 function UngradedRow({ registration, onGraded }) {
   const [score, setScore] = useState("");
@@ -26,29 +27,58 @@ function UngradedRow({ registration, onGraded }) {
   }
 
   return (
-    <tr className="border-b border-slate-50 last:border-0">
-      <td className="px-5 py-3 font-medium text-slate-700">{registration.student?.matric_number}</td>
-      <td className="px-5 py-3 text-slate-600">{registration.course}</td>
-      <td className="px-5 py-3">
-        <Input
-          type="number"
-          min={0}
-          max={100}
-          value={score}
-          onChange={(e) => setScore(e.target.value)}
-          className="!py-1.5 w-24"
-          placeholder="0-100"
-        />
-        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
-      </td>
-      <td className="px-5 py-3 text-right">
-        <Button onClick={submit} disabled={saving} className="!px-3 !py-1.5 text-xs">
-          {saving ? "Saving..." : "Save score"}
-        </Button>
-      </td>
-    </tr>
+    <div className="flex flex-col gap-3 border-b border-slate-50 px-4 py-4 last:border-0 sm:flex-row sm:items-center sm:gap-4 sm:px-5 sm:py-3">
+      <div className="flex items-center justify-between gap-3 sm:w-36 sm:shrink-0 sm:justify-start">
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-400 sm:hidden">
+          Student
+        </span>
+        <span className="font-medium text-slate-700">{registration.student?.matric_number}</span>
+      </div>
+      <div className="flex items-center justify-between gap-3 sm:w-28 sm:shrink-0 sm:justify-start">
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-400 sm:hidden">
+          Course
+        </span>
+        <span className="text-slate-600">{registration.course}</span>
+      </div>
+      <div className="flex items-center justify-between gap-3 sm:flex-1 sm:justify-start">
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-400 sm:hidden">
+          Score
+        </span>
+        <div>
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            value={score}
+            onChange={(e) => setScore(e.target.value)}
+            className="!py-1.5 w-24"
+            placeholder="0-100"
+          />
+          {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+        </div>
+      </div>
+      <Button onClick={submit} disabled={saving} className="w-full !px-3 !py-1.5 text-xs sm:w-auto">
+        {saving ? "Saving..." : "Save score"}
+      </Button>
+    </div>
   );
 }
+
+const gradedColumns = [
+  { key: "student", header: "Student", cellClassName: "font-medium text-slate-700" },
+  { key: "course", header: "Course" },
+  { key: "score", header: "Score" },
+  { key: "grade", header: "Grade" },
+  {
+    key: "status",
+    header: "Status",
+    cell: (r) => (
+      <Badge tone={r.is_published ? "published" : "pending"}>
+        {r.is_published ? "Published" : "Pending"}
+      </Badge>
+    ),
+  },
+];
 
 export default function StaffResults() {
   const { data: registrations, loading: loadingRegs, reload: reloadRegs } = useFetch(
@@ -83,33 +113,43 @@ export default function StaffResults() {
     }
   }
 
+  const columns = [
+    ...gradedColumns,
+    {
+      key: "actions",
+      header: "",
+      align: "right",
+      hideLabel: true,
+      cell: (r) => (
+        <Button
+          variant="secondary"
+          className="w-full !px-3 !py-1.5 text-xs sm:w-auto"
+          disabled={publishingId === r.id}
+          onClick={() => togglePublish(r)}
+        >
+          {publishingId === r.id ? "Saving..." : r.is_published ? "Unpublish" : "Publish"}
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-8">
       {error && <Alert>{error}</Alert>}
 
       <div>
         <SectionHeader title="Needs grading" />
-        <Card className="overflow-x-auto p-0">
+        <Card className="overflow-hidden p-0">
           {loadingRegs || loadingResults ? (
             <div className="flex justify-center py-10">
               <Spinner />
             </div>
           ) : ungraded.length > 0 ? (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
-                  <th className="px-5 py-3 font-medium">Student</th>
-                  <th className="px-5 py-3 font-medium">Course</th>
-                  <th className="px-5 py-3 font-medium">Score</th>
-                  <th className="px-5 py-3 font-medium" />
-                </tr>
-              </thead>
-              <tbody>
-                {ungraded.map((reg) => (
-                  <UngradedRow key={reg.id} registration={reg} onGraded={reloadAll} />
-                ))}
-              </tbody>
-            </table>
+            <div>
+              {ungraded.map((reg) => (
+                <UngradedRow key={reg.id} registration={reg} onGraded={reloadAll} />
+              ))}
+            </div>
           ) : (
             <EmptyState title="All registrations are graded" />
           )}
@@ -123,50 +163,8 @@ export default function StaffResults() {
             <div className="flex justify-center py-10">
               <Spinner />
             </div>
-          ) : results && results.length > 0 ? (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
-                  <th className="px-5 py-3 font-medium">Student</th>
-                  <th className="px-5 py-3 font-medium">Course</th>
-                  <th className="px-5 py-3 font-medium">Score</th>
-                  <th className="px-5 py-3 font-medium">Grade</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium" />
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((r) => (
-                  <tr key={r.id} className="border-b border-slate-50 last:border-0">
-                    <td className="px-5 py-3 font-medium text-slate-700">{r.student}</td>
-                    <td className="px-5 py-3 text-slate-600">{r.course}</td>
-                    <td className="px-5 py-3 text-slate-600">{r.score}</td>
-                    <td className="px-5 py-3 text-slate-600">{r.grade}</td>
-                    <td className="px-5 py-3">
-                      <Badge tone={r.is_published ? "published" : "pending"}>
-                        {r.is_published ? "Published" : "Pending"}
-                      </Badge>
-                    </td>
-                    <td className="px-5 py-3 text-right">
-                      <Button
-                        variant="secondary"
-                        className="!px-3 !py-1.5 text-xs"
-                        disabled={publishingId === r.id}
-                        onClick={() => togglePublish(r)}
-                      >
-                        {publishingId === r.id
-                          ? "Saving..."
-                          : r.is_published
-                          ? "Unpublish"
-                          : "Publish"}
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           ) : (
-            <EmptyState title="No results uploaded yet" />
+            <DataTable columns={columns} rows={results} empty={<EmptyState title="No results uploaded yet" />} />
           )}
         </Card>
       </div>

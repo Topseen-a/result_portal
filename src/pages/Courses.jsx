@@ -9,6 +9,7 @@ import {
 } from "../api/endpoints";
 import { useFetch } from "../utils/useFetch";
 import { Card, SectionHeader, Button, Select, Alert, Spinner, EmptyState } from "../components/ui";
+import { DataTable } from "../components/DataTable";
 import { PlusIcon } from "../components/icons";
 import AddCourseForm from "../components/AddCourseForm";
 
@@ -50,6 +51,41 @@ export default function Courses() {
   }, [sessions, sessionId]);
 
   const registeredCodes = new Set((myRegistrations || []).map((r) => r.course));
+
+  const columns = [
+    { key: "course_code", header: "Code", cellClassName: "font-medium text-slate-700" },
+    { key: "title", header: "Title" },
+    { key: "level", header: "Level", cell: (c) => `${c.level}L` },
+    { key: "semester", header: "Semester", cellClassName: "capitalize text-slate-600" },
+    { key: "credit_units", header: "Units" },
+    ...(profile?.role === "student"
+      ? [
+          {
+            key: "actions",
+            header: "",
+            align: "right",
+            hideLabel: true,
+            cell: (c) => {
+              const isRegistered = registeredCodes.has(c.course_code);
+              return (
+                <Button
+                  variant={isRegistered ? "secondary" : "primary"}
+                  disabled={isRegistered || registeringCode === c.course_code}
+                  onClick={() => handleRegister(c.course_code)}
+                  className="w-full !px-3 !py-1.5 text-xs sm:w-auto"
+                >
+                  {isRegistered
+                    ? "Registered"
+                    : registeringCode === c.course_code
+                    ? "Registering..."
+                    : "Register"}
+                </Button>
+              );
+            },
+          },
+        ]
+      : []),
+  ];
 
   async function handleRegister(courseCode) {
     setMessage(null);
@@ -128,53 +164,17 @@ export default function Courses() {
           <div className="flex justify-center py-10">
             <Spinner />
           </div>
-        ) : courses && courses.length > 0 ? (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
-                <th className="px-5 py-3 font-medium">Code</th>
-                <th className="px-5 py-3 font-medium">Title</th>
-                <th className="px-5 py-3 font-medium">Level</th>
-                <th className="px-5 py-3 font-medium">Semester</th>
-                <th className="px-5 py-3 font-medium">Units</th>
-                {profile?.role === "student" && <th className="px-5 py-3 font-medium" />}
-              </tr>
-            </thead>
-            <tbody>
-              {courses.map((c) => {
-                const isRegistered = registeredCodes.has(c.course_code);
-                return (
-                  <tr key={c.course_code} className="border-b border-slate-50 last:border-0">
-                    <td className="px-5 py-3 font-medium text-slate-700">{c.course_code}</td>
-                    <td className="px-5 py-3 text-slate-600">{c.title}</td>
-                    <td className="px-5 py-3 text-slate-600">{c.level}L</td>
-                    <td className="px-5 py-3 capitalize text-slate-600">{c.semester}</td>
-                    <td className="px-5 py-3 text-slate-600">{c.credit_units}</td>
-                    {profile?.role === "student" && (
-                      <td className="px-5 py-3 text-right">
-                        <Button
-                          variant={isRegistered ? "secondary" : "primary"}
-                          disabled={isRegistered || registeringCode === c.course_code}
-                          onClick={() => handleRegister(c.course_code)}
-                          className="!px-3 !py-1.5 text-xs"
-                        >
-                          {isRegistered
-                            ? "Registered"
-                            : registeringCode === c.course_code
-                            ? "Registering..."
-                            : "Register"}
-                        </Button>
-                      </td>
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
         ) : (
-          <EmptyState
-            title="No courses in this department yet"
-            description={isStaffOrAdmin ? "Use “Add course” to create the first one." : undefined}
+          <DataTable
+            columns={columns}
+            rows={courses}
+            keyField="course_code"
+            empty={
+              <EmptyState
+                title="No courses in this department yet"
+                description={isStaffOrAdmin ? "Use “Add course” to create the first one." : undefined}
+              />
+            }
           />
         )}
       </Card>
