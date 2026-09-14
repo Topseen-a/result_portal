@@ -117,9 +117,3 @@ Full interactive documentation with request/response schemas is available at `/s
 - **Backend**: [Render](https://render.com) (free tier, Docker-based web service)
 - Static files are served by WhiteNoise directly from the Django process — no separate static file host needed
 - `CORS_ALLOWED_ORIGINS` must include the deployed frontend's URL, and `ALLOWED_HOSTS` must include the backend's own Render hostname
-
-Note: on Render's free tier the service spins down after periods of inactivity, so the first request after a period of idleness can take 30-60 seconds to respond.
-
-## License
-
-Add a license here (e.g. MIT) if you intend this to be public.
