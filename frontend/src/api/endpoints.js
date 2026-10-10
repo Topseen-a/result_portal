@@ -1,4 +1,4 @@
-import { apiRequest, unwrapResults } from "./client";
+import { apiRequest, fetchAllPages, toQuery } from "./client";
 
 // --- Auth ---
 export function login(email, password) {
@@ -14,27 +14,64 @@ export function getMe() {
 }
 
 // --- Departments ---
-export async function listDepartments() {
-  const data = await apiRequest("/departments/", { auth: false });
-  return unwrapResults(data);
+export function listDepartments() {
+  return fetchAllPages("/departments/", {}, { auth: false });
+}
+
+export function createDepartment(payload) {
+  return apiRequest("/departments/", { method: "POST", body: payload });
+}
+
+export function updateDepartment(code, payload) {
+  return apiRequest(`/departments/${code}/`, { method: "PATCH", body: payload });
+}
+
+export function deleteDepartment(code) {
+  return apiRequest(`/departments/${code}/`, { method: "DELETE" });
 }
 
 // --- Courses (nested under a department) ---
-export async function listCourses(departmentCode) {
-  const data = await apiRequest(`/departments/${departmentCode}/course/`);
-  return unwrapResults(data);
+export function listCourses(departmentCode) {
+  return fetchAllPages(`/departments/${departmentCode}/course/`);
+}
+
+export function createCourse(departmentCode, payload) {
+  return apiRequest(`/departments/${departmentCode}/course/`, { method: "POST", body: payload });
+}
+
+export function updateCourse(departmentCode, courseCode, payload) {
+  return apiRequest(`/departments/${departmentCode}/course/${courseCode}/`, { method: "PATCH", body: payload });
+}
+
+export function deleteCourse(departmentCode, courseCode) {
+  return apiRequest(`/departments/${departmentCode}/course/${courseCode}/`, { method: "DELETE" });
 }
 
 // --- Academic sessions ---
-export async function listSessions() {
-  const data = await apiRequest("/session/");
-  return unwrapResults(data);
+export function listSessions() {
+  return fetchAllPages("/session/");
+}
+
+export function createSession(payload) {
+  return apiRequest("/session/", { method: "POST", body: payload });
+}
+
+export function updateSession(id, payload) {
+  return apiRequest(`/session/${id}/`, { method: "PATCH", body: payload });
+}
+
+export function deleteSession(id) {
+  return apiRequest(`/session/${id}/`, { method: "DELETE" });
 }
 
 // --- Course registration ---
-export async function listMyRegistrations() {
-  const data = await apiRequest("/course-registration/");
-  return unwrapResults(data);
+export function listMyRegistrations() {
+  return fetchAllPages("/course-registration/");
+}
+
+// One page of registrations, with filters (admin/staff view).
+export function listRegistrationsPage(params) {
+  return apiRequest(`/course-registration/${toQuery(params)}`);
 }
 
 export function registerCourse({ course, session }) {
@@ -46,13 +83,25 @@ export function dropRegistration(id) {
 }
 
 // --- Results ---
-export async function listResults() {
-  const data = await apiRequest("/results/");
-  return unwrapResults(data);
+export function listResults() {
+  return fetchAllPages("/results/");
+}
+
+// One page of results, with filters (admin view).
+export function listResultsPage(params) {
+  return apiRequest(`/results/${toQuery(params)}`);
 }
 
 export function uploadResult({ registration, score }) {
   return apiRequest("/results/", { method: "POST", body: { registration, score } });
+}
+
+export function updateResultScore(id, score) {
+  return apiRequest(`/results/${id}/`, { method: "PATCH", body: { score } });
+}
+
+export function deleteResult(id) {
+  return apiRequest(`/results/${id}/`, { method: "DELETE" });
 }
 
 export function publishResult(id, isPublished) {
@@ -66,4 +115,46 @@ export function getGpa(matricNumber, sessionId) {
 
 export function getCgpa(matricNumber) {
   return apiRequest(`/cgpa/${matricNumber}/`);
+}
+
+// --- Password reset ---
+export function requestPasswordReset(email) {
+  return apiRequest("/auth/password-reset/", { method: "POST", body: { email }, auth: false });
+}
+
+export function confirmPasswordReset({ uid, token, newPassword }) {
+  return apiRequest("/auth/password-reset/confirm/", {
+    method: "POST",
+    body: { uid, token, new_password: newPassword },
+    auth: false,
+  });
+}
+
+// --- Admin ---
+export function getAdminOverview() {
+  return apiRequest("/admin-overview/");
+}
+
+export function listStudentsPage(params) {
+  return apiRequest(`/students/${toQuery(params)}`);
+}
+
+export function updateStudent(matricNumber, payload) {
+  return apiRequest(`/students/${matricNumber}/`, { method: "PATCH", body: payload });
+}
+
+export function listStaffPage(params) {
+  return apiRequest(`/staff/${toQuery(params)}`);
+}
+
+export function enrollStaff(payload) {
+  return apiRequest("/staff-enroll/", { method: "POST", body: payload });
+}
+
+export function updateStaff(id, payload) {
+  return apiRequest(`/staff/${id}/`, { method: "PATCH", body: payload });
+}
+
+export function sendMessage({ email, subject, message }) {
+  return apiRequest("/send-message/", { method: "POST", body: { email, subject, message } });
 }

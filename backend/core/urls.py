@@ -1,6 +1,6 @@
 from django.urls import include, path
 from academics.views import CourseViewSet
-from .views import DepartmentViewSet, send_message
+from .views import DepartmentViewSet, send_message, admin_overview
 from rest_framework_nested import routers
 
 
@@ -14,4 +14,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('', include(dept_router.urls)),
     path('send-message/', send_message, name='send_message'),
+    path('admin-overview/', admin_overview, name='admin_overview'),
 ]

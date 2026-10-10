@@ -11,7 +11,7 @@ const LEVEL_LABEL = { "100": "100 Level", "200": "200 Level", "300": "300 Level"
 
 const resultColumns = [
   { key: "course", header: "Course", cellClassName: "font-medium text-slate-700" },
-  { key: "score", header: "Score" },
+  { key: "score", header: "Score", cell: (r) => Number(r.score) },
   { key: "grade", header: "Grade" },
   {
     key: "status",
@@ -133,7 +133,7 @@ export default function StudentDashboard() {
               </Link>
             }
           />
-          <Card className="overflow-x-auto p-0">
+          <Card flush>
             {loadingResults ? (
               <div className="flex justify-center py-10">
                 <Spinner />

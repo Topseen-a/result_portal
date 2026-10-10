@@ -6,12 +6,28 @@ from results.utils import calculate_grade
 class ResultSerializer(serializers.ModelSerializer):
     student = serializers.CharField(source="registration.student.matric_number", read_only=True)
     course = serializers.CharField(source="registration.course.course_code", read_only=True)
+    student_name = serializers.CharField(source="registration.student.user.get_full_name", read_only=True)
+    course_title = serializers.CharField(source="registration.course.title", read_only=True)
+    session = serializers.IntegerField(source="registration.session_id", read_only=True)
+    session_name = serializers.SerializerMethodField()
+    uploaded_by_name = serializers.CharField(source="uploaded_by.user.get_full_name", read_only=True)
 
     class Meta:
         model = Result
-        fields = ["id", "registration", "student", "course", "score", "grade", "grade_point", "is_published", "uploaded_by", "created_at", "updated_at"]
+        fields = ["id", "registration", "student", "student_name", "course", "course_title", "session", "session_name", "score", "grade", "grade_point", "is_published", "uploaded_by", "uploaded_by_name", "created_at", "updated_at"]
         read_only_fields = ["grade", "grade_point", "uploaded_by", "created_at", "updated_at"]
 
+
+    def get_session_name(self, obj):
+        session = obj.registration.session
+        return f"{session.name} · {session.get_semester_display()}"
+
+    def validate_registration(self, registration):
+        user = self.context["request"].user
+        staff = getattr(user, "staff_profile", None)
+        if staff is None or registration.course.department_id != staff.department_id:
+            raise serializers.ValidationError("You can only grade courses in your own department.")
+        return registration
 
     def validate_score(self, value):
         if value < 0 or value > 100:

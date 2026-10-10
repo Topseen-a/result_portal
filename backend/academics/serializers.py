@@ -12,11 +12,24 @@ class CourseSerializer(serializers.ModelSerializer):
         department_id = self.context.get('department_id')
         return Course.objects.create(department_id=department_id, **validated_data)
 
+    def update(self, instance, validated_data):
+        # course_code is the primary key; changing it would create a new row.
+        validated_data.pop('course_code', None)
+        return super().update(instance, validated_data)
+
 
 class AcademicSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = AcademicSession
-        fields = ['name', 'year', 'semester', 'is_current', 'start_date', 'end_date']
+        fields = ['id', 'name', 'year', 'semester', 'is_current', 'start_date', 'end_date']
+        read_only_fields = ['id']
+
+    def validate(self, attrs):
+        start = attrs.get('start_date', getattr(self.instance, 'start_date', None))
+        end = attrs.get('end_date', getattr(self.instance, 'end_date', None))
+        if start and end and end < start:
+            raise serializers.ValidationError({"end_date": "End date must be after the start date."})
+        return attrs
 
 
 class ReadAcademicSessionSerializer(serializers.ModelSerializer):
@@ -33,17 +46,23 @@ class StudentSerializer(serializers.ModelSerializer):
 
 class CourseRegistrationSerializer(serializers.ModelSerializer):
     course_title = serializers.CharField(source='course.title', read_only=True)
+    student_name = serializers.CharField(source='student.user.get_full_name', read_only=True)
+    session_name = serializers.CharField(source='session.name', read_only=True)
+    has_result = serializers.SerializerMethodField()
     student = StudentSerializer(read_only=True)
     session_semester = serializers.SerializerMethodField()
 
     class Meta:
         model = CourseRegistration
-        fields = ['id', 'course', 'course_title', 'session', 'student', 'session_semester', 'register_at']
+        fields = ['id', 'course', 'course_title', 'session', 'session_name', 'student', 'student_name', 'session_semester', 'has_result', 'register_at']
 
         read_only_fields = ['id', 'register_at', 'session_semester', 'course_title']
 
     def get_session_semester(self, obj):
         return obj.session.get_semester_display()
+
+    def get_has_result(self, obj):
+        return hasattr(obj, 'result')
 
     def validate(self, attrs):
         course = attrs.get('course')

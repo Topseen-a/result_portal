@@ -20,7 +20,7 @@ export default function MobileNav({ open, onClose }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 md:hidden">
+    <div className="fixed inset-0 z-50 lg:hidden">
       <div className="absolute inset-0 bg-slate-900/50" onClick={onClose} aria-hidden="true" />
       <aside className="relative flex h-full w-72 max-w-[85%] flex-col bg-navy-950 px-4 py-6 text-white shadow-xl">
         <button

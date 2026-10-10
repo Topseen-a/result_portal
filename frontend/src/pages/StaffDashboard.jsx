@@ -2,15 +2,25 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { listMyRegistrations, listResults } from "../api/endpoints";
 import { useFetch } from "../utils/useFetch";
+import { designationLabel } from "../utils/constants";
 import { Card, SectionHeader, Badge, Spinner } from "../components/ui";
 import { DataTable } from "../components/DataTable";
 import MiniCalendar from "../components/MiniCalendar";
 import { ChevronRightIcon } from "../components/icons";
 
 const resultColumns = [
-  { key: "student", header: "Student", cellClassName: "font-medium text-slate-700" },
+  {
+    key: "student",
+    header: "Student",
+    cell: (r) => (
+      <span className="block leading-tight">
+        <span className="block font-medium text-slate-800">{r.student_name || r.student}</span>
+        <span className="font-mono text-xs text-slate-400">{r.student}</span>
+      </span>
+    ),
+  },
   { key: "course", header: "Course" },
-  { key: "score", header: "Score" },
+  { key: "score", header: "Score", cell: (r) => `${Number(r.score)} (${r.grade})` },
   {
     key: "status",
     header: "Status",
@@ -50,7 +60,7 @@ export default function StaffDashboard() {
             Welcome back, {profile?.first_name || profile?.username} 👋
           </h1>
           <p className="mt-2 text-sm text-slate-300">
-            {staff ? `${staff.department_name} · ${staff.designation.replace(/_/g, " ")}` : ""}
+            {staff ? `${staff.department_name} · ${designationLabel(staff.designation)}` : ""}
           </p>
         </div>
 
@@ -87,7 +97,7 @@ export default function StaffDashboard() {
               </Link>
             }
           />
-          <Card className="overflow-x-auto p-0">
+          <Card flush>
             {loadingResults ? (
               <div className="flex justify-center py-10">
                 <Spinner />
@@ -119,6 +129,9 @@ export default function StaffDashboard() {
             </Link>
             <Link to="/results" className="block rounded-lg bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">
               Upload a result
+            </Link>
+            <Link to="/student-lookup" className="block rounded-lg bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100">
+              Look up a student's GPA
             </Link>
           </div>
         </Card>

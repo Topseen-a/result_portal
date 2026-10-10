@@ -125,3 +125,107 @@ export const BookIcon = (props) => (
     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
   </svg>
 );
+
+export const EyeIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+export const EyeOffIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-2.4 3.3" />
+    <path d="M6.6 6.6C3.7 8.4 2 12 2 12s3.5 7 10 7a9.8 9.8 0 0 0 5.4-1.6" />
+    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    <path d="M3 3l18 18" />
+  </svg>
+);
+
+export const CheckIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M5 12.5l4.5 4.5L19 7.5" />
+  </svg>
+);
+
+export const MailIcon = (props) => (
+  <svg {...base} {...props}>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <path d="M3.5 6.5l8.5 6.5 8.5-6.5" />
+  </svg>
+);
+
+export const ArrowLeftIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M19 12H5M11 18l-6-6 6-6" />
+  </svg>
+);
+
+export const UsersIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20" />
+    <circle cx="10" cy="8" r="3.5" />
+    <path d="M20 20v-1.5a3.5 3.5 0 0 0-2.5-3.35M15.5 4.6a3.5 3.5 0 0 1 0 6.8" />
+  </svg>
+);
+
+export const BriefcaseIcon = (props) => (
+  <svg {...base} {...props}>
+    <rect x="3" y="7" width="18" height="13" rx="2" />
+    <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 12.5h18" />
+  </svg>
+);
+
+export const BuildingIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M3 21h18M5 21V10l7-5 7 5v11" />
+    <path d="M9 21v-5h6v5M9 12h.01M15 12h.01" />
+  </svg>
+);
+
+export const ExternalLinkIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M14 4h6v6M20 4l-9 9" />
+    <path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+  </svg>
+);
+
+export const CalendarIcon = (props) => (
+  <svg {...base} {...props}>
+    <rect x="3.5" y="4.5" width="17" height="16" rx="2" />
+    <path d="M8 2.5v4M16 2.5v4M3.5 10h17" />
+  </svg>
+);
+
+export const PencilIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z" />
+    <path d="M13.5 6.5l4 4" />
+  </svg>
+);
+
+export const SendIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M21 3L10 14" />
+    <path d="M21 3l-7 18-4-7-7-4 18-7z" />
+  </svg>
+);
+
+export const ChevronDownIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M6 9l6 6 6-6" />
+  </svg>
+);
+
+export const AlertIcon = (props) => (
+  <svg {...base} {...props}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 8v4.5M12 16h.01" />
+  </svg>
+);
+
+export const ListIcon = (props) => (
+  <svg {...base} {...props}>
+    <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />
+  </svg>
+);

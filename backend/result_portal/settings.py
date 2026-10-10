@@ -42,6 +42,9 @@ CORS_ALLOWED_ORIGINS = [
     origin for origin in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if origin
 ]
 
+# Base URL of the frontend, used to build links in emails (e.g. password reset).
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+
 
 # Application definition
 

@@ -39,7 +39,22 @@ class ApiError extends Error {
 
 // Tries to refresh the access token using the stored refresh token.
 // Returns the new access token, or null if refresh failed.
-async function tryRefreshToken() {
+//
+// The backend rotates refresh tokens and blacklists the old one, so the new
+// refresh token must be stored, and concurrent 401s must share one refresh
+// request (a second request with the old token would be rejected).
+let refreshInFlight = null;
+
+function tryRefreshToken() {
+  if (!refreshInFlight) {
+    refreshInFlight = refreshTokens().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
+}
+
+async function refreshTokens() {
   const refresh = getRefreshToken();
   if (!refresh) return null;
 
@@ -52,6 +67,7 @@ async function tryRefreshToken() {
     if (!res.ok) return null;
     const data = await res.json();
     localStorage.setItem(ACCESS_KEY, data.access);
+    if (data.refresh) localStorage.setItem(REFRESH_KEY, data.refresh);
     return data.access;
   } catch {
     return null;
@@ -147,4 +163,23 @@ export function unwrapResults(data) {
   if (Array.isArray(data)) return data;
   if (data && Array.isArray(data.results)) return data.results;
   return data;
+}
+
+// Builds a query string from an object, skipping empty values.
+export function toQuery(params = {}) {
+  const query = new URLSearchParams(
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== "")
+  ).toString();
+  return query ? `?${query}` : "";
+}
+
+// Fetches every page of a paginated list endpoint and returns one array.
+export async function fetchAllPages(path, params = {}, options = {}) {
+  const items = [];
+  for (let page = 1; ; page++) {
+    const data = await apiRequest(`${path}${toQuery({ ...params, page })}`, options);
+    if (!data || !Array.isArray(data.results)) return unwrapResults(data);
+    items.push(...data.results);
+    if (!data.next) return items;
+  }
 }

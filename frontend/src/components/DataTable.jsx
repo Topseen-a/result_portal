@@ -8,36 +8,38 @@ export function DataTable({ columns, rows, keyField = "id", empty }) {
 
   return (
     <div>
-      <table className="hidden w-full text-sm sm:table">
-        <thead>
-          <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
-            {columns.map((col) => (
-              <th
-                key={col.key}
-                className={`px-5 py-3 font-medium ${col.align === "right" ? "text-right" : ""}`}
-              >
-                {col.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row[keyField]} className="border-b border-slate-50 last:border-0">
+      <div className="hidden overflow-x-auto sm:block">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
               {columns.map((col) => (
-                <td
+                <th
                   key={col.key}
-                  className={`px-5 py-3 ${col.align === "right" ? "text-right" : ""} ${
-                    col.cellClassName || "text-slate-600"
-                  }`}
+                  className={`whitespace-nowrap px-5 py-3 font-medium ${col.align === "right" ? "text-right" : ""}`}
                 >
-                  {col.cell ? col.cell(row) : row[col.key]}
-                </td>
+                  {col.header}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row[keyField]} className="border-b border-slate-50 last:border-0">
+                {columns.map((col) => (
+                  <td
+                    key={col.key}
+                    className={`px-5 py-3 ${col.align === "right" ? "text-right" : ""} ${
+                      col.cellClassName || "text-slate-600"
+                    }`}
+                  >
+                    {col.cell ? col.cell(row) : row[col.key]}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <div className="divide-y divide-slate-50 sm:hidden">
         {rows.map((row) => (
