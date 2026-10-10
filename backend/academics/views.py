@@ -1,22 +1,34 @@
 from django.db import IntegrityError
+from django.db.models import Q
 from loguru import logger
 from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import SAFE_METHODS
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from core.permissions import IsAdmin, IsAdminOrStaff, IsAdminOrStaffOrReadOnly
+from core.mixins import ProtectedDestroyMixin
+from core.permissions import IsAdmin, IsAdminOrStaff, IsAdminOrStaffOrReadOnly, staff_department_id
 from .models import Course, AcademicSession, CourseRegistration
 from .serializers import CourseSerializer, AcademicSessionSerializer, CourseRegistrationSerializer, ReadAcademicSessionSerializer
 
 
-class CourseViewSet(ModelViewSet):
+class CourseViewSet(ProtectedDestroyMixin, ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsAdminOrStaffOrReadOnly]
+    protected_message = "Students have registered for this course, so it can't be deleted."
 
     def get_queryset(self):
         return Course.objects.filter(department=self.kwargs["nested_1_pk"])
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        # Staff can browse every catalog but only change courses in their own department.
+        if request.method not in SAFE_METHODS and request.user.is_staff_member:
+            if staff_department_id(request.user) != self.kwargs.get("nested_1_pk"):
+                raise PermissionDenied("You can only manage courses in your own department.")
 
     def get_serializer_context(self):
         return {"department_id": self.kwargs.get("nested_1_pk")}
@@ -36,9 +48,10 @@ class AcademicSessionView(ListCreateAPIView):
         return [IsAuthenticated()]
 
 
-class GetUpdateDeleteAcademicSessionView(RetrieveUpdateDestroyAPIView):
+class GetUpdateDeleteAcademicSessionView(ProtectedDestroyMixin, RetrieveUpdateDestroyAPIView):
     queryset = AcademicSession.objects.all()
     serializer_class = AcademicSessionSerializer
+    protected_message = "This session has course registrations, so it can't be deleted."
 
     def get_permissions(self):
         if self.request.method in ["PUT", "PATCH", "DELETE"]:
@@ -54,11 +67,27 @@ class CourseRegistrationViewSet(ModelViewSet):
         user = self.request.user
 
         qs = CourseRegistration.objects.select_related(
-            "student__user", "course__department", "session"
+            "student__user", "course__department", "session", "result"
         ).all()
 
         if user.is_student:
             qs = qs.filter(student=user.student_profile)
+        elif user.is_staff_member:
+            qs = qs.filter(course__department_id=staff_department_id(user))
+
+        params = self.request.query_params
+        if params.get("session"):
+            qs = qs.filter(session_id=params["session"])
+        if params.get("course"):
+            qs = qs.filter(course_id=params["course"])
+        if params.get("search"):
+            term = params["search"]
+            qs = qs.filter(
+                Q(student__matric_number__icontains=term)
+                | Q(student__user__first_name__icontains=term)
+                | Q(student__user__last_name__icontains=term)
+                | Q(course__course_code__icontains=term)
+            )
 
         return qs
 
@@ -145,6 +174,12 @@ class CourseRegistrationViewSet(ModelViewSet):
             )
 
     def destroy(self, request, *args, **kwargs):
+        if request.user.is_staff_member:
+            return Response(
+                {"error": "Only the student or an admin can drop a course registration."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         registration = self.get_object()
 
         if request.user.is_student and registration.student != request.user.student_profile:
@@ -155,6 +190,12 @@ class CourseRegistrationViewSet(ModelViewSet):
             return Response(
                 {"error": "You can only drop your own course registrations."},
                 status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if request.user.is_student and hasattr(registration, "result"):
+            return Response(
+                {"error": "This course has already been graded, so it can't be dropped."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         logger.info(

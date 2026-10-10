@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -6,10 +7,10 @@ from rest_framework.viewsets import ModelViewSet
 
 from academics.models import AcademicSession
 from account.models import Student
-from core.permissions import IsStaffMember
+from core.permissions import IsStaffMember, staff_department_id
 from results.models import Result
 from results.serializers import ResultSerializer
-from results.utils import calculate_gpa, calculate_cgpa
+from results.utils import calculate_gpa, calculate_cgpa, session_breakdown
 
 
 class ResultViewSet(ModelViewSet):
@@ -17,10 +18,11 @@ class ResultViewSet(ModelViewSet):
 
     def get_queryset(self):
         qs = Result.objects.select_related(
-            "registration__student",
+            "registration__student__user",
             "registration__course",
-            "uploaded_by"
-        )
+            "registration__session",
+            "uploaded_by__user",
+        ).order_by("-updated_at")
 
         user = self.request.user
         if user.is_student:
@@ -28,6 +30,25 @@ class ResultViewSet(ModelViewSet):
             qs = qs.filter(
                 registration__student=user.student_profile,
                 is_published=True,
+            )
+        elif user.is_staff_member:
+            # Staff only see and manage results for courses in their own department.
+            qs = qs.filter(registration__course__department_id=staff_department_id(user))
+
+        params = self.request.query_params
+        if params.get("session"):
+            qs = qs.filter(registration__session_id=params["session"])
+        if params.get("course"):
+            qs = qs.filter(registration__course_id=params["course"])
+        if params.get("is_published") in ("true", "false"):
+            qs = qs.filter(is_published=params["is_published"] == "true")
+        if params.get("search"):
+            term = params["search"]
+            qs = qs.filter(
+                Q(registration__student__matric_number__icontains=term)
+                | Q(registration__student__user__first_name__icontains=term)
+                | Q(registration__student__user__last_name__icontains=term)
+                | Q(registration__course__course_code__icontains=term)
             )
 
         return qs
@@ -80,15 +101,20 @@ class StudentCGPAView(APIView):
             )
 
         try:
-            student = Student.objects.get(pk=matric_number)
+            student = Student.objects.select_related("user", "department").get(pk=matric_number)
         except Student.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "No student has that matric number."}, status=status.HTTP_404_NOT_FOUND)
 
         cgpa = calculate_cgpa(student)
 
         return Response(
             {
                 "student": student.matric_number,
-                "cgpa": cgpa
+                "student_name": student.user.get_full_name(),
+                "department_name": student.department.name,
+                "level": student.level,
+                "status": student.status,
+                "cgpa": cgpa,
+                "sessions": session_breakdown(student),
             }
         )

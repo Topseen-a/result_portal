@@ -1,6 +1,7 @@
 import { useAuth } from "../context/AuthContext";
 import StudentDashboard from "./StudentDashboard";
 import StaffDashboard from "./StaffDashboard";
+import AdminDashboard from "./AdminDashboard";
 import { Spinner } from "../components/ui";
 
 export default function Dashboard() {
@@ -14,8 +15,7 @@ export default function Dashboard() {
     );
   }
 
-  // Admins get the same overview as staff for now - department/session/course
-  // management for admins still happens through the Django admin panel.
   if (profile.role === "student") return <StudentDashboard />;
+  if (profile.role === "admin") return <AdminDashboard />;
   return <StaffDashboard />;
 }

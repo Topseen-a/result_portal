@@ -1,29 +1,30 @@
 import { useState } from "react";
-import { listMyRegistrations, listSessions, dropRegistration } from "../api/endpoints";
-import { useFetch } from "../utils/useFetch";
-import { Card, SectionHeader, Button, Spinner, EmptyState, Alert } from "../components/ui";
-import { DataTable } from "../components/DataTable";
-import { TrashIcon } from "../components/icons";
 import { Link } from "react-router-dom";
+import { listMyRegistrations, dropRegistration } from "../api/endpoints";
+import { useFetch } from "../utils/useFetch";
+import { useToast } from "../context/ToastContext";
+import { formatDate } from "../utils/constants";
+import { Card, PageHeader, Button, LoadingBlock, EmptyState, Badge, IconButton } from "../components/ui";
+import { DataTable } from "../components/DataTable";
+import { ConfirmDialog } from "../components/Modal";
+import { TrashIcon, PlusIcon } from "../components/icons";
 
 export default function Registrations() {
+  const toast = useToast();
   const { data: registrations, loading, reload } = useFetch(listMyRegistrations, []);
-  const { data: sessions } = useFetch(listSessions, []);
-  const [droppingId, setDroppingId] = useState(null);
-  const [error, setError] = useState("");
+  const [dropping, setDropping] = useState(null);
+  const [dropState, setDropState] = useState({ busy: false, error: "" });
 
-  const sessionById = new Map((sessions || []).map((s) => [s.id, s]));
-
-  async function handleDrop(id) {
-    setError("");
-    setDroppingId(id);
+  async function confirmDrop() {
+    setDropState({ busy: true, error: "" });
     try {
-      await dropRegistration(id);
+      await dropRegistration(dropping.id);
+      toast(`Dropped ${dropping.course}.`);
+      setDropping(null);
+      setDropState({ busy: false, error: "" });
       reload();
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setDroppingId(null);
+      setDropState({ busy: false, error: err.message });
     }
   }
 
@@ -31,57 +32,52 @@ export default function Registrations() {
     {
       key: "course",
       header: "Course",
-      cellClassName: "font-medium text-slate-700",
-      cell: (r) => `${r.course} — ${r.course_title}`,
+      cell: (r) => (
+        <span className="block leading-tight">
+          <span className="block font-medium text-slate-800">{r.course}</span>
+          <span className="text-xs text-slate-500">{r.course_title}</span>
+        </span>
+      ),
     },
+    { key: "session", header: "Session", cell: (r) => `${r.session_name} · ${r.session_semester}` },
     {
-      key: "session",
-      header: "Session",
-      cell: (r) => sessionById.get(r.session)?.name || r.session,
+      key: "has_result",
+      header: "Result",
+      cell: (r) => <Badge tone={r.has_result ? "published" : "default"}>{r.has_result ? "Graded" : "Awaiting score"}</Badge>,
     },
-    { key: "session_semester", header: "Semester", cellClassName: "capitalize text-slate-600" },
-    {
-      key: "register_at",
-      header: "Registered on",
-      cell: (r) => new Date(r.register_at).toLocaleDateString(),
-    },
+    { key: "register_at", header: "Registered", cellClassName: "whitespace-nowrap text-slate-500", cell: (r) => formatDate(r.register_at) },
     {
       key: "actions",
       header: "",
       align: "right",
       hideLabel: true,
-      cell: (r) => (
-        <Button
-          variant="danger"
-          className="w-full !px-3 !py-1.5 text-xs sm:w-auto"
-          disabled={droppingId === r.id}
-          onClick={() => handleDrop(r.id)}
-        >
-          <TrashIcon width={14} height={14} />
-          {droppingId === r.id ? "Dropping..." : "Drop"}
-        </Button>
-      ),
+      cell: (r) =>
+        r.has_result ? null : (
+          <div className="flex justify-end">
+            <IconButton label={`Drop ${r.course}`} tone="danger" onClick={() => setDropping(r)}>
+              <TrashIcon width={16} height={16} />
+            </IconButton>
+          </div>
+        ),
     },
   ];
 
   return (
-    <div className="space-y-6">
-      <SectionHeader
-        title="My Registrations"
-        action={
-          <Link to="/courses" className="text-sm font-semibold text-brand-600 hover:text-brand-500">
-            Browse courses
-          </Link>
+    <div>
+      <PageHeader
+        title="My registrations"
+        description="Courses you've registered for. You can drop a course until it has been graded."
+        actions={
+          <Button as={Link} to="/courses">
+            <PlusIcon width={16} height={16} />
+            Register courses
+          </Button>
         }
       />
 
-      {error && <Alert>{error}</Alert>}
-
-      <Card className="overflow-x-auto p-0">
+      <Card flush>
         {loading ? (
-          <div className="flex justify-center py-10">
-            <Spinner />
-          </div>
+          <LoadingBlock />
         ) : (
           <DataTable
             columns={columns}
@@ -100,6 +96,30 @@ export default function Registrations() {
           />
         )}
       </Card>
+
+      <ConfirmDialog
+        open={Boolean(dropping)}
+        onClose={() => {
+          setDropping(null);
+          setDropState({ busy: false, error: "" });
+        }}
+        onConfirm={confirmDrop}
+        title="Drop this course?"
+        confirmLabel="Drop course"
+        message={
+          dropping && (
+            <>
+              You'll be removed from{" "}
+              <span className="font-semibold text-slate-800">
+                {dropping.course} · {dropping.course_title}
+              </span>
+              . You can register again later if you change your mind.
+            </>
+          )
+        }
+        busy={dropState.busy}
+        error={dropState.error}
+      />
     </div>
   );
 }

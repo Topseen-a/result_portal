@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { listSessions, getGpa, getCgpa } from "../api/endpoints";
 import { useFetch } from "../utils/useFetch";
-import { Card, SectionHeader, Select, Spinner, Alert } from "../components/ui";
+import { Card, PageHeader, Select, Spinner, Alert } from "../components/ui";
 
 export default function Gpa() {
   const { profile } = useAuth();
@@ -13,7 +13,7 @@ export default function Gpa() {
 
   useEffect(() => {
     if (sessions && sessions.length > 0 && !sessionId) {
-      const current = sessions.find((s) => s.is_current) || sessions[0];
+      const current = sessions.find((s) => s.is_current) || sessions[sessions.length - 1];
       setSessionId(String(current.id));
     }
   }, [sessions, sessionId]);
@@ -30,7 +30,7 @@ export default function Gpa() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader title="GPA / CGPA" />
+      <PageHeader title="GPA / CGPA" description="Calculated from published results on a 5.0 scale." />
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <Card>

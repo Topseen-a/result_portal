@@ -35,3 +35,9 @@ class IsAdminOrStaffOrReadOnly(BasePermission):
         if request.method in SAFE_METHODS:
             return True
         return request.user.is_admin or request.user.is_staff_member
+
+
+def staff_department_id(user):
+    """Department a staff member is limited to, or None when they have no staff profile."""
+    profile = getattr(user, "staff_profile", None)
+    return profile.department_id if profile else None

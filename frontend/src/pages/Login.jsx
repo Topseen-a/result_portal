@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Button, Input, Alert } from "../components/ui";
+import { Button, Input, PasswordInput, Alert } from "../components/ui";
+import AuthLayout from "../components/AuthLayout";
 
 export default function Login() {
   const { login } = useAuth();
@@ -11,6 +12,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const notice = location.state?.notice;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -36,64 +38,54 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen">
-      <div className="hidden flex-1 flex-col justify-between bg-navy-950 p-12 text-white lg:flex">
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500 text-sm font-bold">
-            R
-          </div>
-          <span className="text-lg font-semibold tracking-tight">Result Portal</span>
-        </div>
-        <div className="max-w-md">
-          <h1 className="text-3xl font-semibold leading-tight">
-            Results, registrations, and GPA — all in one place.
-          </h1>
-          <p className="mt-4 text-sm leading-relaxed text-slate-400">
-            Register for courses, track your published results, and check your GPA and CGPA
-            the moment they're released.
-          </p>
-        </div>
-        <p className="text-xs text-slate-500">© {new Date().getFullYear()} Result Portal</p>
-      </div>
-
-      <div className="flex flex-1 items-center justify-center bg-[#f6f7fb] px-6 py-12">
-        <div className="w-full max-w-sm">
-          <h2 className="text-2xl font-semibold text-slate-900">Welcome back</h2>
-          <p className="mt-1 text-sm text-slate-500">Sign in to your account to continue.</p>
-
-          <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-            {error && <Alert>{error}</Alert>}
-            <Input
-              label="Email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-            />
-            <Input
-              label="Password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing in..." : "Sign in"}
-            </Button>
-          </form>
-
-          <p className="mt-6 text-center text-sm text-slate-500">
-            New here?{" "}
-            <Link to="/create-account" className="font-medium text-brand-600 hover:underline">
-              Create an account
+    <AuthLayout
+      heading="Welcome back"
+      subheading="Sign in to your account to continue."
+      panelTitle="Results, registrations and GPA, all in one place."
+      panelText="Register for courses, track your published results, and check your GPA and CGPA the moment they're released."
+      footer={
+        <>
+          New here?{" "}
+          <Link to="/create-account" className="font-semibold text-brand-600 hover:text-brand-500">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {notice && !error && <Alert tone="success">{notice}</Alert>}
+        {error && <Alert>{error}</Alert>}
+        <Input
+          label="Email address"
+          type="email"
+          autoComplete="email"
+          autoFocus
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+        />
+        <PasswordInput
+          label="Password"
+          labelAction={
+            <Link
+              to="/forgot-password"
+              state={{ email }}
+              className="text-sm font-medium text-brand-600 hover:text-brand-500"
+            >
+              Forgot password?
             </Link>
-          </p>
-        </div>
-      </div>
-    </div>
+          }
+          autoComplete="current-password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter your password"
+        />
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Signing in..." : "Sign in"}
+        </Button>
+      </form>
+    </AuthLayout>
   );
 }

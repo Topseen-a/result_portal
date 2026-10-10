@@ -74,6 +74,8 @@ The app is at http://localhost:5173.
 | `DEBUG` | `True` for local development only |
 | `ALLOWED_HOSTS` | Comma-separated hostnames |
 | `CORS_ALLOWED_ORIGINS` | Comma-separated frontend URLs |
+| `FRONTEND_URL` | Frontend base URL, used for password reset links in emails |
+| `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` | SMTP settings for outgoing mail (password reset) |
 | `DATABASE_URL` | Postgres connection string (used if set) |
 | `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` | Used when `DATABASE_URL` is not set |
 

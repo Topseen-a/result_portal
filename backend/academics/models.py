@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 
@@ -23,6 +23,13 @@ class AcademicSession(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.get_semester_display()}"
+
+    def save(self, *args, **kwargs):
+        # Only one session can be current at a time.
+        with transaction.atomic():
+            if self.is_current:
+                AcademicSession.objects.exclude(pk=self.pk).filter(is_current=True).update(is_current=False)
+            super().save(*args, **kwargs)
 
 
 class Course(models.Model):
